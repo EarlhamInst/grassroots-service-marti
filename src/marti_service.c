@@ -226,17 +226,30 @@ static MartiEntry *GetMartiEntryByQuery (bson_t *query_p, const MartiServiceData
 						}		/* if (num_results == 1) */
 					else
 						{
-							char *query_s = ConvertBSONToJSON (query_p, NULL);
+							size_t length;
+							json_t *json_p = ConvertBSONToJSON (query_p, NULL);
 
-							if (query_s)
+							if (json_p)
 								{
-									PrintJSONToErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, results_p, SIZET_FMT " results when searching with \"%s\"", num_results, query_s);
-									bson_free (query_s);
+									char *query_s = json_dumps (json_p, 0);
+
+									if (query_s)
+										{
+											PrintJSONToErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, results_p, SIZET_FMT " results when searching with \"%s\"", num_results, query_s);
+											free (query_s);
+										}
+									else
+										{
+											PrintJSONToErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, results_p, SIZET_FMT " results when searching", num_results);
+										}
+
+									json_decref (json_p);
 								}
 							else
 								{
 									PrintJSONToErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, results_p, SIZET_FMT " results when searching", num_results);
 								}
+
 
 						}
 
